@@ -5,7 +5,7 @@
 // saving output to S3 bucket or console log
 //
 // See also:
-//   https://github.com/alestic/lambdash
+//   http://alestic.com/2014/11/aws-lambda-shell
 //
 // WARNING! This code should not be taken as a good example of
 // anything. This is my first attempt at writing in JavaScript and in
