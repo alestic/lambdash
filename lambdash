@@ -38,12 +38,15 @@ aws lambda invoke-async \
    --function-name "$lambdash_function" \
    --invoke-args "$args_file" > /dev/null
 
-while ! aws s3 cp s3://$lambdash_bucket/$stderr_file /tmp >/dev/null 2>&1; do
+mkdir -p -m700 /tmp/$lambdash_function
+while ! aws s3 cp s3://$lambdash_bucket/$stderr_file /tmp/$stderr_file \
+       >/dev/null 2>&1; do
   sleep 1
 done
 cat /tmp/$stderr_file >&2
 
-while ! aws s3 cp s3://$lambdash_bucket/$stdout_file /tmp >/dev/null 2>&1; do
+while ! aws s3 cp s3://$lambdash_bucket/$stdout_file /tmp/$stdout_file \
+       >/dev/null 2>&1; do
   sleep 1
 done
 cat /tmp/$stdout_file
