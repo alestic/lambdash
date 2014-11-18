@@ -1,0 +1,56 @@
+#!/bin/bash
+#
+# See: http://alestic.com/
+#
+# CAVEATS:
+#
+# There is quite a bit of important setup that must be done just right
+# inside of AWS before this code has any chance of being useful.
+#
+# This code does no error checking or reporting and there are many
+# critical things that can and will easily go wrong if not set up
+# exactly right.
+#
+# This code does not check our output the AWS CloudWatch logs which
+# contain a lot of useful information about what went wrong.
+#
+
+# Edit these to match your setup
+lambdash_function=lambdash
+lambdash_bucket=lambdash.alestic.com
+
+command="$*"
+uuid=$(uuid)
+
+args_file=$(mktemp /tmp/lambdash-args-XXXXXX.json)
+stdout_file=lambdash/lambdash-$uuid-stdout.txt
+stderr_file=lambdash/lambdash-$uuid-stderr.txt
+cat > $args_file <<EOM
+{
+  "command": "$command",
+  "bucket":  "$lambdash_bucket",
+  "stdout":  "$stdout_file",
+  "stderr":  "lambdash-$uuid-stderr.txt"
+}
+EOM
+
+aws lambda invoke-async \
+   --function-name "$lambdash_function" \
+   --invoke-args "$args_file" > /dev/null
+
+while ! aws s3 cp s3://$lambdash_bucket/$stderr_file /tmp >/dev/null 2>&1; do
+  sleep 1
+done
+cat /tmp/$stderr_file >&2
+
+while ! aws s3 cp s3://$lambdash_bucket/$stdout_file /tmp >/dev/null 2>&1; do
+  sleep 1
+done
+cat /tmp/$stdout_file
+
+# Cleanup
+rm $args_file
+rm /tmp/$stderr_file
+rm /tmp/$stdout_file
+aws s3 rm s3://$lambdash_bucket/$stderr_file >/dev/null
+aws s3 rm s3://$lambdash_bucket/$stdout_file >/dev/null
