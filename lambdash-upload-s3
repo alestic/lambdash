@@ -1,0 +1,23 @@
+#!/bin/bash -e
+#
+# lambdash-upload-s3 - Upload to S3: Lambda ZIP and CloudFormation template
+#
+
+# Settings
+
+    function=lambdash
+    s3_bucket=run.alestic.com
+    s3_zip_file=s3://$s3_bucket/lambda/$function.zip
+    s3_template_file=s3://$s3_bucket/cloudformation/$function.template
+
+# Create ZIP file and upload to S3
+
+    lambda_zip_dir=$(mktemp -d /tmp/$function.XXXXXX)
+    lambda_zip_file=$lambda_zip_dir/$function.zip
+    zip -q -r $lambda_zip_file $lambda_function_file index.js
+    aws s3 cp --acl public-read $lambda_zip_file $s3_zip_file
+    rm -r $lambda_zip_dir
+
+# Upload CloudFormation template to S3
+
+    aws s3 cp --acl public-read $function.template $s3_template_file

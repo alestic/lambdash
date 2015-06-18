@@ -1,59 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env python
 #
-# See: http://alestic.com/2014/11/aws-lambda-shell
+# See also: http://alestic.com/2014/11/aws-lambda-shell
 #
-# CAVEATS:
-#
-# There is quite a bit of important setup that must be done just right
-# inside of AWS before this code has any chance of being useful.
-#
-# This code does no error checking or reporting and there are many
-# critical things that can and will easily go wrong if not set up
-# exactly right.
-#
-# This code does not check our output the AWS CloudWatch logs which
-# contain a lot of useful information about what went wrong.
-#
+# Usage:
+#   export LAMBDASH_FUNCTION=[FUNCTIONNAME]
+#   lambdash [SHELLCOMMAND]
+# 
+from __future__ import print_function
+import boto3, json, sys, os, base64
 
-# Edit these to match your setup
-lambdash_function=lambdash
-lambdash_bucket=lambdash.alestic.com
+client = boto3.client('lambda', region_name='us-east-1')
+response = client.invoke(
+    InvocationType="RequestResponse",
+    FunctionName=os.environ['LAMBDASH_FUNCTION'] or 'lambdash',
+    Payload='{"command":'+json.dumps(" ".join(sys.argv[1:]))+'}')
+result = json.load(response['Payload'])
 
-command="$*"
-uuid=$(uuid)
-
-args_file=$(mktemp /tmp/$lambdash_function-args-XXXXXX.json)
-stdout_file=$lambdash_function/$lambdash_function-$uuid-stdout.txt
-stderr_file=$lambdash_function/$lambdash_function-$uuid-stderr.txt
-cat > $args_file <<EOM
-{
-  "command": "$command",
-  "bucket":  "$lambdash_bucket",
-  "stdout":  "$stdout_file",
-  "stderr":  "$stderr_file"
-}
-EOM
-
-aws lambda invoke-async \
-   --function-name "$lambdash_function" \
-   --invoke-args "$args_file" > /dev/null
-
-mkdir -p -m700 /tmp/$lambdash_function
-while ! aws s3 cp s3://$lambdash_bucket/$stderr_file /tmp/$stderr_file \
-       >/dev/null 2>&1; do
-  sleep 1
-done
-cat /tmp/$stderr_file >&2
-
-while ! aws s3 cp s3://$lambdash_bucket/$stdout_file /tmp/$stdout_file \
-       >/dev/null 2>&1; do
-  sleep 1
-done
-cat /tmp/$stdout_file
-
-# Cleanup
-rm $args_file
-rm /tmp/$stderr_file
-rm /tmp/$stdout_file
-aws s3 rm s3://$lambdash_bucket/$stderr_file >/dev/null
-aws s3 rm s3://$lambdash_bucket/$stdout_file >/dev/null
+os.write(sys.stdout.fileno(), base64.b64decode(result["stdout"]))
+os.write(sys.stderr.fileno(), base64.b64decode(result["stderr"]))
+exit(result["code"])

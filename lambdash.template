@@ -1,0 +1,77 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "lambdash - AWWS Lambda function for running shell commands",
+  "Parameters": {
+    "LambdaFunctionName": {
+      "Description": "Name of Lambda function",
+      "Type": "String",
+      "Default": "lambdash"
+    },
+    "S3Bucket": {
+      "Description": "S3 bucket name containing the Lambda function ZIP file",
+      "Type": "String",
+      "Default": "run.alestic.com"
+    },
+    "S3Key": {
+      "Description": "S3 key containing the Lambda function ZIP file",
+      "Type": "String",
+      "Default": "lambda/lambdash.zip"
+    }
+  },
+  "Resources": {
+    "InvokeRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [ {
+             "Effect": "Allow",
+             "Principal": {
+                "Service": [ "lambda.amazonaws.com" ]
+             },
+             "Action": [ "sts:AssumeRole" ]
+          } ]
+        },
+        "Path": "/",
+        "Policies": [ {
+          "PolicyName": "InvokePolicy",
+          "PolicyDocument": {
+            "Statement": [ {
+              "Effect": "Allow",
+              "Action": [
+                "lambda:InvokeFunction"
+              ],
+              "Resource": [
+                "*"
+              ]
+            } ]
+          }
+        } ]
+      }
+    },
+    "function": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": { "Ref": "S3Bucket" },
+          "S3Key": { "Ref": "S3Key" }
+        },
+        "Description": "lambdash - Lambda function for running shell commands in Lambda environment",
+        "Handler": "index.handler",
+        "MemorySize": 1536,
+        "Role": {"Fn::GetAtt": ["InvokeRole", "Arn"] },
+        "Runtime": "nodejs",
+        "Timeout": 60
+      }
+    }
+  },
+  "Outputs": {
+    "LambdaFunction": {
+      "Value": {"Ref": "function"}
+    },
+    "SetThisEnvironmentVariable": {
+      "Value": {"Fn::Join": [ "", [
+        "export LAMBDASH_FUNCTION=", {"Ref": "function"}
+      ]]}
+    }
+  }
+}

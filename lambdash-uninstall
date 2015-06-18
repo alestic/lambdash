@@ -1,0 +1,26 @@
+#!/bin/bash -e
+#
+# lambdash-install - Install lambdash AWS Lambda function with CloudFormation
+#
+
+# Settings
+
+    function=lambdash
+    stackname=$function
+    region=us-east-1
+
+# Delete the old CloudFormation stack and all resources, if any
+
+    aws cloudformation delete-stack \
+      --region "$region" \
+      --stack-name "$stackname" ||:
+
+    while status=$(aws cloudformation describe-stacks \
+            --region "$region" \
+            --stack-name "$stackname" \
+            --output text \
+            --query 'Stacks[*].[StackStatus]' 2>/dev/null)
+          [ "$status" = 'DELETE_IN_PROGRESS' ]
+    do
+      sleep 10
+    done
