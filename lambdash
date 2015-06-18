@@ -11,14 +11,14 @@ import boto3, json, sys, os, base64
 
 client = boto3.client('lambda', region_name='us-east-1')
 response = client.invoke(
-    InvocationType="RequestResponse",
+    InvocationType='RequestResponse',
     FunctionName=os.environ['LAMBDASH_FUNCTION'] or 'lambdash',
     Payload='{"command":'+json.dumps(" ".join(sys.argv[1:]))+'}')
 result = json.load(response['Payload'])
 
-os.write(sys.stdout.fileno(), base64.b64decode(result["stdout"]))
-os.write(sys.stderr.fileno(), base64.b64decode(result["stderr"]))
+os.write(sys.stdout.fileno(), base64.b64decode(result['stdout']))
+os.write(sys.stderr.fileno(), base64.b64decode(result['stderr']))
 
-if result['error'] and 'code' in result["error"]:
-    exit(result["error"]['code'])
+if result['error'] and 'code' in result['error']:
+    exit(result['error']['code'])
 exit(0)
