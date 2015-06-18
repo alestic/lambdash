@@ -1,5 +1,5 @@
 
-This code is referenced in the following articles: Please these
+This code is referenced in the following articles: Please read these
 articles for more information.
 
   lambdash: AWS Lambda Shell Hack: New And Improved!
