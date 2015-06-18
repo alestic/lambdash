@@ -12,12 +12,11 @@
 # Create CloudFormation stack containing AWS Lambda function 
 
     template=lambdash.template
-    parameters=$(echo $(cat <<EOF
+    read -d '' parameters<<EOF
     [
     {"ParameterKey":"LambdaFunctionName", "ParameterValue":"$function"}
     ]
 EOF
-))
     aws cloudformation create-stack \
       --region "$region" \
       --stack-name "$stackname" \
