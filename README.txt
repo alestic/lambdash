@@ -2,8 +2,8 @@
 This code is referenced in the following articles: Please these
 articles for more information.
 
-  lambdash: AWS Lambda Shell Hack
-  https://alestic.com/2014/11/aws-lambda-shell/
+  lambdash: AWS Lambda Shell Hack: New And Improved!
+  https://alestic.com/2015/06/aws-lambda-shell-2/
 
   Exploring The AWS Lambda Runtime Environment
   https://alestic.com/2014/11/aws-lambda-environment/ 
