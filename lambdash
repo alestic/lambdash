@@ -18,4 +18,7 @@ result = json.load(response['Payload'])
 
 os.write(sys.stdout.fileno(), base64.b64decode(result["stdout"]))
 os.write(sys.stderr.fileno(), base64.b64decode(result["stderr"]))
-exit(result["code"])
+
+if result['error'] and 'code' in result["error"]:
+    exit(result["error"]['code'])
+exit(0)
