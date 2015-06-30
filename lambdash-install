@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 #
 # lambdash-install - Install lambdash AWS Lambda function with CloudFormation
 #
