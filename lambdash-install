@@ -12,32 +12,21 @@
 # Create CloudFormation stack containing AWS Lambda function 
 
     template=lambdash.template
-    read -d '' parameters<<EOF
-    [
-    {"ParameterKey":"LambdaFunctionName", "ParameterValue":"$function"}
-    ]
-EOF
     aws cloudformation create-stack \
       --region "$region" \
       --stack-name "$stackname" \
       --capabilities CAPABILITY_IAM \
       --template-body "file://$template" \
-      --parameters "$parameters" \
+      --parameters \
+        "ParameterKey=LambdaFunctionName,ParameterValue=$function" \
       --tags "Key=Name,Value=$function"
     echo region=$region stackname=$stackname
 
 # Wait for the stack to be created
 
-    while status=$(aws cloudformation describe-stacks \
-            --region "$region" \
-            --stack-name "$stackname" \
-            --output text \
-            --query 'Stacks[*].[StackStatus]')
-          echo "stack status: $status"
-          [ "$status" != 'CREATE_COMPLETE' ]
-    do
-      sleep 10
-    done
+    aws cloudformation wait stack-create-complete \
+      --region "$region" \
+      --stack-name "$stackname"
 
 # Show the physical resource name for the lambdash program to use
 
