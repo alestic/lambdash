@@ -3,6 +3,7 @@
 //
 // See also: https://alestic.com/2014/11/aws-lambda-shell/
 //
+process.env['PATH'] = process.env['PATH'] + ':' + process.cwd()
 var AWS = require('aws-sdk');
 var exec = require('child_process').exec;
 var MAX_OUTPUT = 1024 * 1024 * 1024; // 1 GB
