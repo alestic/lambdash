@@ -7,17 +7,37 @@
 
     function=lambdash
     s3_bucket=run.alestic.com
-    s3_zip_file=s3://$s3_bucket/lambda/$function.zip
+    s3_zipfile=s3://$s3_bucket/lambda/$function.zip
     s3_template_file=s3://$s3_bucket/cloudformation/$function.template
 
-# Create ZIP file and upload to S3
+    tmpdir=$(mktemp -d /tmp/lambda-XXXXXX)
+    virtualenv=$tmpdir/virtual-env
+    zipfile=$tmpdir/lambda.zip
 
-    lambda_zip_dir=$(mktemp -d /tmp/$function.XXXXXX)
-    lambda_zip_file=$lambda_zip_dir/$function.zip
-    zip -q -r $lambda_zip_file $lambda_function_file index.js
-    aws s3 cp --acl public-read $lambda_zip_file $s3_zip_file
-    rm -r $lambda_zip_dir
+    on_exit()
+    {
+        rm -r $tmpdir
+    }
+    trap 'on_exit' EXIT
 
-# Upload CloudFormation template to S3
+# Build aws-cli package in a virtualenv subshell
 
+    (
+    virtualenv -q $virtualenv
+    source $virtualenv/bin/activate
+    pip -q install awscli
+    )
+
+# Create ZIP file with AWS Lambda function and aws-cli
+
+    zip -qr9 $zipfile index.js
+
+    rsync -a $virtualenv/bin/aws $tmpdir/aws
+    perl -pi -e '$_ ="#!/usr/bin/python\n" if $. == 1' $tmpdir/aws
+    (cd $tmpdir; zip -qr9 $zipfile aws)
+    (cd $virtualenv/lib/python2.7/site-packages; zip -qr9 $zipfile *)
+
+# Upload Lambda function ZIP file and CloudFormation template to S3
+
+    aws s3 cp --acl public-read $zipfile $s3_zipfile
     aws s3 cp --acl public-read $function.template $s3_template_file
