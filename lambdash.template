@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "lambdash - AWWS Lambda function for running shell commands",
+  "Description": "lambdash - AWS Lambda function for running shell commands",
   "Parameters": {
     "LambdaFunctionName": {
       "Description": "Name of Lambda function",
