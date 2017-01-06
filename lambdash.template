@@ -59,7 +59,7 @@
         "Handler": "index.handler",
         "MemorySize": 1536,
         "Role": {"Fn::GetAtt": ["InvokeRole", "Arn"] },
-        "Runtime": "nodejs",
+        "Runtime": "nodejs4.3",
         "Timeout": 60
       }
     }
