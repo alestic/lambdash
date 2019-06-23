@@ -11,8 +11,8 @@ exports.handler = function(event, context) {
     var child = exec(event.command, {encoding: 'binary', maxBuffer: MAX_OUTPUT},
         function (error, stdout, stderr) {
             var result = {
-                "stdout": new Buffer(stdout, 'binary').toString('base64'),
-                "stderr": new Buffer(stderr, 'binary').toString('base64'),
+                "stdout": Buffer.from(stdout, 'binary').toString('base64'),
+                "stderr": Buffer.from(stderr, 'binary').toString('base64'),
                 "error": error
             };
             context.succeed(result);
