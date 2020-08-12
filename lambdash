@@ -12,7 +12,7 @@ import boto3, json, sys, os, base64
 client = boto3.client('lambda', region_name='us-east-1')
 response = client.invoke(
     InvocationType='RequestResponse',
-    FunctionName=os.environ['LAMBDASH_FUNCTION'] or 'lambdash',
+    FunctionName=os.environ.get('LAMBDASH_FUNCTION') or 'lambdash',
     Payload='{"command":'+json.dumps(" ".join(sys.argv[1:]))+'}')
 result = json.load(response['Payload'])
 
