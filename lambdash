@@ -10,11 +10,17 @@ from __future__ import print_function
 import boto3, json, sys, os, base64
 
 client = boto3.client('lambda', region_name='us-east-1')
-response = client.invoke(
-    InvocationType='RequestResponse',
-    FunctionName=os.environ['LAMBDASH_FUNCTION'] or 'lambdash',
-    Payload='{"command":'+json.dumps(" ".join(sys.argv[1:]))+'}')
-result = json.load(response['Payload'])
+function_name = os.environ.get('LAMBDASH_FUNCTION') or 'lambdash'
+try:
+    response = client.invoke(
+        InvocationType='RequestResponse',
+        FunctionName=function_name,
+        Payload='{"command":'+json.dumps(" ".join(sys.argv[1:]))+'}')
+    result = json.load(response['Payload'])
+except client.exceptions.ResourceNotFoundException:
+    print('Lambda function not found (Set in LAMBDASH_FUNCTION environment variable).')
+    print('Attempted function:', function_name)
+    exit(1)
 
 os.write(sys.stdout.fileno(), base64.b64decode(result['stdout']))
 os.write(sys.stderr.fileno(), base64.b64decode(result['stderr']))
